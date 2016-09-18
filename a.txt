@@ -1,0 +1,68 @@
+CS 5320
+Assignment 1
+Jiayu Dong (jd885)
+Ruochen Song (rs2352)
+Hongshu Ye (hy483)
+
+1.(a)SELECT DISTINCT c.cid, c.cnameFROM Purchase b JOIN Customer c USING(cid)WHERE NOT EXISTS (SELECT p.cid FROM Product a, Purchase p         WHERE p.pid = a.pid AND c.cid = p.cid AND p.price < a.msrp) ;1.(b)SELECT cid, pidFROM Purchase GROUP BY cid, pidHAVING COUNT(*) = 2;1.(c)SELECT pid, MIN(price) AS lowest_priceFROM Purchase GROUP BY pid;1.(d)SELECT c.cid, c.cname, 0 AS countFROM Customer cWHERE NOT EXISTS (SELECT * FROM Purchase p WHERE p.cid = c.cid)UNIONSELECT c.cid, c.cname, COUNT(c.cid) AS countFROM Customer c, Purchase pWHERE c.cid = p.cidGROUP BY c.cid, c.cname;1.(e) SELECT ca, cb, COALESCE((intersect / (seta + setb-intersect)),0) AS JaccardFROM (SELECT t.ca AS ca, t.cb AS cb, COUNT(DISTINCT t.pa) AS seta, COUNT(DISTINCT t.pb) AS setb      FROM (SELECT DISTINCT p1.cid AS ca, p2.cid AS cb, p1.pid AS pa, p2.pid AS pb            FROM purchase p1, purchase p2 WHERE p1.cid < p2.cid) AS t            GROUP BY t.ca, t.cb) AS a LEFT OUTER JOIN 	    (SELECT DISTINCT t.ca AS ca, t.cb AS cb, COUNT(*) as intersect            FROM (SELECT DISTINCT p1.cid AS ca, p2.cid AS cb, p1.pid AS pa, p2.pid AS pb                  FROM purchase p1, purchase p2                   WHERE p1.cid < p2.cid AND p1.pid = p2.pid) AS t            GROUP BY t.ca, t.cb) AS b USING (ca, cb)ORDER BY Jaccard DESC;
+3.(a)
+ALTER TABLE Reserves ADD CONSTRINT timechk CHECK (startdate <= enddate AND (CASE WHEN startdate = enddate THEN starttime < endtime END) AND EXTRACT (MINUTE FROM starttime) = 0 AND EXTRACT (MINUTE FROM endtime) = 0);
+
+3.(b)					   
+CREATE OR REPLACE FUNCTION reserve_overlap() RETURNS trigger AS $reserve_overlap$
+    BEGIN
+        IF EXISTS(SELECT * 
+		  FROM Reserves 
+		  WHERE ((startdate < NEW.startdate 
+			OR (startdate = New.startdate AND starttime <= NEW.starttime))
+			AND (enddate > New.startdate
+			OR (enddate = New.startdate AND endtime >= NEW.starttime))
+	      	 )) THEN
+	RAISE EXCEPTION 'TIME OVERLAPS';
+	END IF;
+
+        IF EXISTS(SELECT * 
+		  FROM Reserves 
+		  WHERE ((startdate > NEW.startdate 
+			OR (startdate = New.startdate AND starttime >= NEW.starttime))
+			AND (enddate < New.enddate
+			OR (enddate = New.enddate AND endtime <= NEW.endtime))
+	      	 )) THEN
+	RAISE EXCEPTION 'TIME OVERLAPS';
+	END IF;
+
+	RETURN NEW;
+    END;
+					   
+$reserve_overlap$ LANGUAGE plpgsql;
+
+CREATE TRIGGER reserve_overlap BEFORE INSERT OR UPDATE ON Reserves
+FOR EACH ROW EXECUTE PROCEDURE reserve_overlap();
+
+3.(c)
+CREATE OR REPLACE FUNCTION twelve_hour_max() RETURNS trigger AS $twelve_hour_max$
+    BEGIN
+	IF NEW.startdate = NEW.enddate AND 
+	  (EXTRACT (HOUR FROM NEW.endtime) - EXTRACT (HOUR FROM NEW.starttime) > 12)THEN
+	RAISE EXCEPTION 'CANNOT RESERVE MORE THAN 12 HOURS A DAY';
+	END IF;
+
+	IF NEW.startdate != NEW.enddate 
+	   AND (EXTRACT (HOUR FROM NEW.starttime) < 12 
+                OR EXTRACT (HOUR FROM NEW.endtime) > 12) THEN
+	RAISE EXCEPTION 'CANNOTT RESERVE MORE THAN 12 HOURS A DAY';
+	END IF;
+
+	RETURN NEW;
+    END;
+					   
+$twelve_hour_max$ LANGUAGE plpgsql;
+
+CREATE TRIGGER twelve_hour_max BEFORE INSERT OR UPDATE ON Reserves
+FOR EACH ROW EXECUTE PROCEDURE twelve_hour_max();
+
+
+#TESTCASE#
+
+INSERT INTO Reserves(rid,sid,bid,startdate,starttime,enddate,endtime) VALUES (4,1,1, '20160606','1200','20160607', '1500');
+
