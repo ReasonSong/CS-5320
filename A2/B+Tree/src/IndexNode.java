@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
-public class IndexNode<K extends Comparable<K>, T> extends Node<K,T> {
+public class IndexNode<K extends Comparable<K>, T> extends Node<K, T> {
 
 	// m nodes
 	protected ArrayList<Node<K,T>> children; // m+1 children
@@ -17,11 +17,10 @@ public class IndexNode<K extends Comparable<K>, T> extends Node<K,T> {
 	}
 
 	public IndexNode(List<K> newKeys, List<Node<K,T>> newChildren) {
+		
 		isLeafNode = false;
-
 		keys = new ArrayList<K>(newKeys);
 		children = new ArrayList<Node<K,T>>(newChildren);
-
 	}
 
 	/**
