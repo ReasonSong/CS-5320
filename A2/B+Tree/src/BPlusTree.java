@@ -32,13 +32,14 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		// Search IndexNode until get the LeafNode
 		while (!temp.isLeafNode){
 			index = findKeyIndex(temp,key);
-			temp = ((IndexNode<K,T>)temp).children.get(index + 1);
+			if (index <= temp.keys.size() - 1 && temp.keys.get(index).equals(key)) ++ index;
+			temp = ((IndexNode<K,T>)temp).children.get(index);
 		}
 		
 		// Find the Index in the LeafNode
 		index = findKeyIndex(temp, key);
 		
-		if(index == temp.keys.size() || temp.keys.get(index) != key) return null;
+		if(index == temp.keys.size() || !temp.keys.get(index).equals(key)) return null;
 		return ((LeafNode<K,T>)temp).values.get(index);
 	}
 
@@ -77,7 +78,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		while(parentNodes.size() > 0){	
 			
 			int parentsNum = parentNodes.size() - 1;
-			IndexNode<K,T> parentNode = parentNodes.get(parentsNum);
+			IndexNode<K,T> parentNode = parentNodes.remove(parentsNum);
 			int index = findKeyIndex(parentNode , newEntry.getKey());
 			
 			// Insert the new IndexNode
@@ -88,7 +89,6 @@ public class BPlusTree<K extends Comparable<K>, T> {
 			
 			// Parent IndexNode is also overflowed
 			newEntry = splitIndexNode(parentNode);
-			parentNodes.remove(parentsNum);
 		}
 		
 		// Tree needs to grow by one level 
@@ -180,7 +180,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		while(!temp.isLeafNode){
 			parentNodes.add((IndexNode<K,T>)temp);
 			int index = findKeyIndex(temp, key);
-			if (index <= temp.keys.size() - 1 && temp.keys.get(index) == key) ++ index;
+			if (index <= temp.keys.size() - 1 && temp.keys.get(index).equals(key)) ++ index;
 			temp = ((IndexNode<K,T>)temp).children.get(index);	
 		}
 		
@@ -205,7 +205,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 												(LeafNode<K,T>)temp, 
 												parentNode);
 		if (index == -1) return;	// LeafNode underflow fixed by redistribution 
-		// LeafNodes merge, parent need to delete the split key
+		// LeafNodes merge, the parent need to delete the split key
 		parentNode.keys.remove(index);
 		parentNode.children.remove(index);
 		

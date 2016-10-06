@@ -6,7 +6,17 @@ import java.util.Collections;
 import org.junit.Test;
 
 public class Tests {
-
+	
+	// Test Search()
+	@Test
+	public void testSearch() {
+		    Integer testNumbers[] = new Integer[] {1, 2, 3, 4, 5, 6, 7, 8};
+		    BPlusTree<Integer,Integer> tree = new BPlusTree<Integer,Integer>();
+		    Utils.bulkInsert(tree, testNumbers, testNumbers);
+		    Utils.printTree(tree);
+		    for(int i = 1; i <= 8; ++i) assertEquals(((Integer)i), tree.search(i));
+	}
+	
 	// add some nodes, see if it comes out right, delete one, see if it's right
 	@Test
 	public void testSimpleHybrid() {
