@@ -29,7 +29,6 @@ public class Tests {
 		test = Utils.outputTree(tree);
 		correct = "@e/@%%[(b,b);(c,c);(d,d);]#[(e,e);(f,f);(g,g);]$%%";
 		assertEquals(correct, test);
-
 	}
 
 	// add some nodes, see if it comes out right, delete one, see if it's right
@@ -87,6 +86,7 @@ public class Tests {
 		}
 		BPlusTree<Integer, String> tree = new BPlusTree<Integer, String>();
 		Utils.bulkInsert(tree, testNumbers, testNumberStrings);
+		Utils.printTree(tree);
 
 		tree.delete(6);
 		tree.delete(7);
