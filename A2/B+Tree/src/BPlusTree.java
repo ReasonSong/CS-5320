@@ -186,7 +186,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		
 		// Delete the key/value pair
 		int keyIndex = findKeyIndex(temp, key);
-		if (temp.keys.get(keyIndex) != key) return;	// no such key
+		if (keyIndex >= temp.keys.size() || !temp.keys.get(keyIndex).equals(key)) return;	// no such key
 		((LeafNode<K,T>)temp).keys.remove(keyIndex);
 		((LeafNode<K,T>)temp).values.remove(keyIndex);
 		
@@ -256,6 +256,27 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		return siblingNodes;
 	}
 	
+	
+	/**
+	 *  TODO Find if two children who have a totally entries of 2*D
+	 *  	 need to merge to one single node to be the new root instead
+	 *  	 of redistribute evenly when their parent is the root and
+	 *  	 contains only one key.
+	 *  
+	 * @param node1
+	 * @param node2
+	 * @param parent, their parent index node
+	 * @return True/ False
+	 * 
+	 */
+	/* packet */ boolean needToMergeToBeNewRoot(Node<K,T> node1, Node<K,T> node2,
+				IndexNode<K,T> parent){
+		K key = parent.keys.get(0);
+		return parent == root && parent.keys.size() == 1 
+				&& node1.keys.size() + node2.keys.size() == 2*D
+				&& (node1.keys.indexOf(key) != -1 || node2.keys.indexOf(key) != -1);
+	}
+	
 	/**
 	 * TODO Handle LeafNode Underflow (merge or redistribution)
 	 * 
@@ -270,14 +291,25 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	 */
 	public int handleLeafNodeUnderflow(LeafNode<K,T> left, LeafNode<K,T> right,
 			IndexNode<K,T> parent) {
-			
-		if (left.keys.size() + right.keys.size() >= 2*D){	// only redistribution needed		
+		
+		// Check if the condition should be treated abnormally
+		boolean isMergeToNewRootCase = needToMergeToBeNewRoot(left, right, parent);
+		if (left.keys.size() + right.keys.size() >= 2*D 
+				&& !isMergeToNewRootCase){	// only redistribution needed
 			if (left.isUnderflowed()) {		// the smaller LeafNode is underflowed
-				left.keys.add(right.keys.remove(0));
-				left.values.add(right.values.remove(0));
+				// Redistribute evenly
+				// OR n stored in the left, (n + 1) stored in the right
+				while (right.keys.size() > left.keys.size() + 1) {
+					left.keys.add(right.keys.remove(0));
+					left.values.add(right.values.remove(0));
+				}
 			} else {	// the bigger LeafNode is underflowed
-				right.keys.add(0, left.keys.remove(left.keys.size()-1));
-				right.values.add(0, left.values.remove(left.values.size()-1));
+				// Redistribute evenly
+				// OR n stored in the left, (n + 1) stored in the right
+				while (left.keys.size() > right.keys.size()) {
+					right.keys.add(0, left.keys.remove(left.keys.size()-1));
+					right.values.add(0, left.values.remove(left.values.size()-1));
+				}
 			}
 			parent.keys.set(parent.children.indexOf(left), right.keys.get(0));
 			return -1;
@@ -305,19 +337,30 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	public int handleIndexNodeUnderflow(IndexNode<K,T> leftIndex,
 			IndexNode<K,T> rightIndex, IndexNode<K,T> parent) {
 		
+		// Check if the condition should be treated abnormally
+		boolean isMergeToNewRootCase = needToMergeToBeNewRoot(leftIndex, rightIndex, parent);
 		// Get the parent key between the two IndexNodes
 		K parentKey = parent.keys.get(parent.children.indexOf(leftIndex));
 		
-		if (leftIndex.keys.size() + rightIndex.keys.size() >= 2*D){		// only redistribution needed
+		if (leftIndex.keys.size() + rightIndex.keys.size() >= 2*D
+				&& !isMergeToNewRootCase){		// only redistribution needed
 			if (leftIndex.isUnderflowed()){		// the smaller IndexNode is underflowed
-				leftIndex.keys.add(parentKey);
-				leftIndex.children.add(rightIndex.children.remove(0));
-				parent.keys.set(parent.children.indexOf(leftIndex), rightIndex.keys.remove(0));
+				// Redistribute evenly
+				// OR n stored in the left, (n + 1) stored in the right
+				while (rightIndex.keys.size() > leftIndex.keys.size() + 1){
+					leftIndex.keys.add(parentKey);
+					leftIndex.children.add(rightIndex.children.remove(0));
+					parent.keys.set(parent.children.indexOf(leftIndex), rightIndex.keys.remove(0));
+				}
 			} else {	// the bigger IndexNode is underflowed
-				rightIndex.keys.add(0, parentKey);
-				rightIndex.children.add(0, leftIndex.children.remove(leftIndex.children.size()-1));
-				parent.keys.set(parent.children.indexOf(leftIndex),
-								leftIndex.keys.remove(leftIndex.keys.size()-1));
+				// Redistribute evenly
+				// OR n stored in the left, (n + 1) stored in the right
+				while (leftIndex.keys.size() > rightIndex.keys.size()) {
+					rightIndex.keys.add(0, parentKey);
+					rightIndex.children.add(0, leftIndex.children.remove(leftIndex.children.size()-1));
+					parent.keys.set(parent.children.indexOf(leftIndex),
+							leftIndex.keys.remove(leftIndex.keys.size()-1));
+				}
 			}
 			return -1;
 		}
