@@ -256,27 +256,6 @@ public class BPlusTree<K extends Comparable<K>, T> {
 		return siblingNodes;
 	}
 	
-	
-	/**
-	 *  TODO Find if two children who have a totally entries of 2*D
-	 *  	 need to merge to one single node to be the new root instead
-	 *  	 of redistribute evenly when their parent is the root and
-	 *  	 contains only one key.
-	 *  
-	 * @param node1
-	 * @param node2
-	 * @param parent, their parent index node
-	 * @return True/ False
-	 * 
-	 */
-	/* packet */ boolean needToMergeToBeNewRoot(Node<K,T> node1, Node<K,T> node2,
-				IndexNode<K,T> parent){
-		K key = parent.keys.get(0);
-		return parent == root && parent.keys.size() == 1 
-				&& node1.keys.size() + node2.keys.size() == 2*D
-				&& (node1.keys.indexOf(key) != -1 || node2.keys.indexOf(key) != -1);
-	}
-	
 	/**
 	 * TODO Handle LeafNode Underflow (merge or redistribution)
 	 * 
@@ -292,10 +271,7 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	public int handleLeafNodeUnderflow(LeafNode<K,T> left, LeafNode<K,T> right,
 			IndexNode<K,T> parent) {
 		
-		// Check if the condition should be treated abnormally
-		boolean isMergeToNewRootCase = needToMergeToBeNewRoot(left, right, parent);
-		if (left.keys.size() + right.keys.size() >= 2*D 
-				&& !isMergeToNewRootCase){	// only redistribution needed
+		if (left.keys.size() + right.keys.size() >= 2*D){	// only redistribution needed
 			if (left.isUnderflowed()) {		// the smaller LeafNode is underflowed
 				// Redistribute evenly
 				// OR n stored in the left, (n + 1) stored in the right
@@ -337,13 +313,10 @@ public class BPlusTree<K extends Comparable<K>, T> {
 	public int handleIndexNodeUnderflow(IndexNode<K,T> leftIndex,
 			IndexNode<K,T> rightIndex, IndexNode<K,T> parent) {
 		
-		// Check if the condition should be treated abnormally
-		boolean isMergeToNewRootCase = needToMergeToBeNewRoot(leftIndex, rightIndex, parent);
 		// Get the parent key between the two IndexNodes
 		K parentKey = parent.keys.get(parent.children.indexOf(leftIndex));
 		
-		if (leftIndex.keys.size() + rightIndex.keys.size() >= 2*D
-				&& !isMergeToNewRootCase){		// only redistribution needed
+		if (leftIndex.keys.size() + rightIndex.keys.size() >= 2*D){		// only redistribution needed
 			if (leftIndex.isUnderflowed()){		// the smaller IndexNode is underflowed
 				// Redistribute evenly
 				// OR n stored in the left, (n + 1) stored in the right
