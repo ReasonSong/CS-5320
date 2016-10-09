@@ -43,7 +43,8 @@ If not, function returns. If the key exist delete the key/value pair and check i
 the LeafNode is underflowed. If it is, handle the underflow by redistribution or
 merging. If the underflow is handled by merging, delete the previous left LeafNode
 in their parent IndexNode. After that, use a while() loop to check every parent 
-IndexNode if is underflowed from bottom to top until a parent IndexNode is not underflowed or reach the root. The root can be underflowed but if the root is 
+IndexNode if is underflowed from bottom to top until a parent IndexNode is not 、
+underflowed or reach the root. The root can be underflowed but if the root is 
 empty, finally set its only child as the new root.
 
 /* Helper Function */ ArrayList<Node<K,T>> getSiblings(IndexNode<K,T> parent,
@@ -62,7 +63,7 @@ IndexNode can delete the key and the node later on.
 /* Helper Function */ int handleIndexNodeUnderflow(IndexNode<K,T> left,
 					IndexNode<K,T> right, IndexNode<K,T> parent):
 Handle the IndexNode underflowed happens on either the left IndexNode or the right
-IndexNode by first trying to redistribute two LeafNodes. If two LeafNodes have keys
+IndexNode by first trying to redistribute two IndexNodes. If two IndexNodes have keys
 no fewer than 2*D in total, then redistribute them evenly in the two IndexNodes. Or
 the two IndexNodes need to merge and return the splitkey index so that their parent
 IndexNode can delete the key and the node later on.
