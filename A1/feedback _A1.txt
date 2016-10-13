@@ -1,0 +1,46 @@
+Grading Comment: Submitted by psm92 on October 6, 2016 11:26PM
+Question 1: 
+a) 5/5 
+b) 5/5 
+c) 5/5 
+d) 5/5 
+e) 7/7 
+f) 5/5 
+g) 4/5 
+h) 4/5 
+Total for question 1: 41/42 
+
+Question 2: 
+a) 4/4 
+b) 0/4 
+c) 4/4 
+d) 4/4 
+e) 4/4 
+f) 4/4 
+g) 4/4 
+Total for question 2: 24/28 
+
+Question 3: 
+a) 4/4 
+b) 4/6 
+c) 16/20 
+
+Total for question 3: 24/30 
+
+Final score: 89/100 
+
+Remarks: 
+Q1g), you don't ensure the dates aren't equal 
+
+Q2b), the answer is false. Consider the counterexample: T = {(1,2),(1,3)}. LHS = {(1)} but RHS = {(1),(1)} 
+
+Q3a), your answer has a typo ("CONSTRINT" instead of "CONSTRAINT"). Here is the error: 
+
+ERROR: type "timechk" does not exist 
+LINE 1: ALTER TABLE Reserves ADD CONSTRINT timechk CHECK (startdate ... 
+
+According to the head TA we aren't taking off points this time but if something similar happens in the future you won't get any points :/ 
+
+Q3b), your answer passed 4/6 test cases 
+
+Q3c), your answer passed 4/5 test cases
